@@ -19,6 +19,7 @@ public class Main {
         System.out.println("1) Crescente");
         System.out.println("2) Decrescente");
         System.out.println("3) Aleatória");
+        System.out.println("4) Elementos repetidos");
         System.out.println("----------------------------------------");
         System.out.println("Digite a ordem:");
         int ordem = scan.nextInt();
@@ -41,6 +42,15 @@ public class Main {
                     vetor[i] = rand.nextInt(100000);
                 }
                 break;
+
+            case 4:
+                int[] valores = {5, 2, 5, 3, 2, 5, 1, 3, 2, 1};
+
+                for (int i = 0; i < vetor.length; i++) {
+                    vetor[i] = valores[i % valores.length];
+                }
+                break;
+
 
             default:
                 System.out.println("Opção inválida");
