@@ -1,17 +1,27 @@
+
 // Criado por Kevin Meireles e Joao Rigo
+
 import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) {
-        int tam = 0;
+
         Scanner scan = new Scanner(System.in);
         Random rand = new Random();
 
         System.out.println("------------------Atividade I------------------");
         System.out.println("Digite o tamanho do vetor para ordenar:");
         System.out.println("-----------------------------------------------");
-        tam = scan.nextInt();
+
+        int tam = scan.nextInt();
+
+        if (tam <= 0) {
+            System.out.println("O tamanho do vetor deve ser maior que zero.");
+            scan.close();
+            return;
+        }
 
         Integer[] vetor = new Integer[tam];
 
@@ -22,9 +32,11 @@ public class Main {
         System.out.println("4) Elementos repetidos");
         System.out.println("----------------------------------------");
         System.out.println("Digite a ordem:");
+
         int ordem = scan.nextInt();
 
         switch (ordem) {
+
             case 1:
                 for (int i = 0; i < vetor.length; i++) {
                     vetor[i] = i;
@@ -51,15 +63,16 @@ public class Main {
                 }
                 break;
 
-
             default:
                 System.out.println("Opção inválida");
+                scan.close();
                 return;
         }
 
         int op = -1;
 
         while (op != 0) {
+
             System.out.println("----------------Algoritmos-------------------");
             System.out.println("0) Sair");
             System.out.println("1) Merge");
@@ -82,12 +95,22 @@ public class Main {
                 break;
             }
 
+            if (op < 1 || op > 10) {
+                System.out.println("Opção inválida!");
+                continue;
+            }
+
+            // Armazena os tempos das 10 execuções
+            double[] tempos = new double[10];
+
             double soma = 0;
+            double maximo = Double.NEGATIVE_INFINITY;
+            double minimo = Double.POSITIVE_INFINITY;
 
             System.out.println();
             System.out.println("========== EXECUTANDO 10 VEZES ==========");
 
-            for (int execucao = 1; execucao <= 10; execucao++) {
+            for (int execucao = 0; execucao < 10; execucao++) {
 
                 Integer[] copia = vetor.clone();
 
@@ -144,30 +167,52 @@ public class Main {
                         Shell shell = new Shell();
                         shell.ordenar(copia);
                         break;
-
-                    default:
-                        System.out.println("Opção inválida");
-                        execucao = 10;
-                        continue;
                 }
 
                 long fim = System.nanoTime();
 
                 double tempo = (fim - inicio) / 1_000_000.0;
 
+                tempos[execucao] = tempo;
                 soma += tempo;
+
+                if (tempo > maximo) {
+                    maximo = tempo;
+                }
+
+                if (tempo < minimo) {
+                    minimo = tempo;
+                }
 
                 System.out.printf(
                         "Execução %d: %.3f ms%n",
-                        execucao,
+                        execucao + 1,
                         tempo
                 );
             }
 
-            double media = soma / 10;
+            // Calcula a média
+            double media = soma / tempos.length;
 
+            // Calcula a soma dos quadrados das diferenças
+            double somaQuadrados = 0;
+
+            for (int i = 0; i < tempos.length; i++) {
+                double diferenca = tempos[i] - media;
+                somaQuadrados += diferenca * diferenca;
+            }
+
+            // Desvio padrão populacional das 10 execuções
+            double desvioPadrao = Math.sqrt(
+                    somaQuadrados / tempos.length
+            );
+
+            // Exibe as estatísticas
             System.out.println("-------------------------------------------");
-            System.out.printf("MÉDIA: %.3f ms%n", media);
+            System.out.printf("MÉDIA:          %.3f ms%n", media);
+            System.out.printf("MÁXIMO:         %.3f ms%n", maximo);
+            System.out.printf("MÍNIMO:         %.3f ms%n", minimo);
+            System.out.printf("DESVIO PADRÃO:  %.3f ms%n", desvioPadrao);
             System.out.println("===========================================");
             System.out.println();
         }
