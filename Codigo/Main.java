@@ -1,222 +1,232 @@
 
 // Criado por Kevin Meireles e Joao Rigo
-
-import java.util.Random;
-import java.util.Scanner;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.*;
 
 public class Main {
+    static final int EXECUCOES = 10;
+    static final String[] NOMES = {
+            "", "Merge", "Quick", "Heap", "Counting", "Radix",
+            "Bucket", "Bubble", "Insertion", "Selection", "Shell"
+    };
+    static final String[] ORDENS = {
+            "", "Crescente", "Decrescente", "Aleatoria", "Repetidos"
+    };
 
-    public static void main(String[] args) {
+    static class Resultado {
+        String algoritmo, ordem;
+        int n;
+        double[] tempos;
+        double media, maximo, minimo, desvio;
 
-        Scanner scan = new Scanner(System.in);
-        Random rand = new Random();
-
-        System.out.println("------------------Atividade I------------------");
-        System.out.println("Digite o tamanho do vetor para ordenar:");
-        System.out.println("-----------------------------------------------");
-
-        int tam = scan.nextInt();
-
-        if (tam <= 0) {
-            System.out.println("O tamanho do vetor deve ser maior que zero.");
-            scan.close();
-            return;
-        }
-
-        Integer[] vetor = new Integer[tam];
-
-        System.out.println("-------------Ordem do vetor-------------");
-        System.out.println("1) Crescente");
-        System.out.println("2) Decrescente");
-        System.out.println("3) Aleatória");
-        System.out.println("4) Elementos repetidos");
-        System.out.println("----------------------------------------");
-        System.out.println("Digite a ordem:");
-
-        int ordem = scan.nextInt();
-
-        switch (ordem) {
-
-            case 1:
-                for (int i = 0; i < vetor.length; i++) {
-                    vetor[i] = i;
-                }
-                break;
-
-            case 2:
-                for (int i = 0; i < vetor.length; i++) {
-                    vetor[i] = vetor.length - i;
-                }
-                break;
-
-            case 3:
-                for (int i = 0; i < vetor.length; i++) {
-                    vetor[i] = rand.nextInt(100000);
-                }
-                break;
-
-            case 4:
-                int[] valores = {5, 2, 5, 3, 2, 5, 1, 3, 2, 1};
-
-                for (int i = 0; i < vetor.length; i++) {
-                    vetor[i] = valores[i % valores.length];
-                }
-                break;
-
-            default:
-                System.out.println("Opção inválida");
-                scan.close();
-                return;
-        }
-
-        int op = -1;
-
-        while (op != 0) {
-
-            System.out.println("----------------Algoritmos-------------------");
-            System.out.println("0) Sair");
-            System.out.println("1) Merge");
-            System.out.println("2) Quick");
-            System.out.println("3) Heap");
-            System.out.println("4) Counting");
-            System.out.println("5) Radix");
-            System.out.println("6) Bucket");
-            System.out.println("7) Bubble");
-            System.out.println("8) Insertion");
-            System.out.println("9) Selection");
-            System.out.println("10) Shell");
-            System.out.println("-----------------------------------------------");
-            System.out.println("Digite o Algoritmo para realizar ordenação:");
-            System.out.println("-----------------------------------------------");
-
-            op = scan.nextInt();
-
-            if (op == 0) {
-                break;
-            }
-
-            if (op < 1 || op > 10) {
-                System.out.println("Opção inválida!");
-                continue;
-            }
-
-            // Armazena os tempos das 10 execuções
-            double[] tempos = new double[10];
+        Resultado(String algoritmo, int n, String ordem, double[] tempos) {
+            this.algoritmo = algoritmo;
+            this.n = n;
+            this.ordem = ordem;
+            this.tempos = tempos;
 
             double soma = 0;
-            double maximo = Double.NEGATIVE_INFINITY;
-            double minimo = Double.POSITIVE_INFINITY;
+            minimo = Double.POSITIVE_INFINITY;
+            maximo = Double.NEGATIVE_INFINITY;
 
-            System.out.println();
-            System.out.println("========== EXECUTANDO 10 VEZES ==========");
-
-            for (int execucao = 0; execucao < 10; execucao++) {
-
-                Integer[] copia = vetor.clone();
-
-                long inicio = System.nanoTime();
-
-                switch (op) {
-
-                    case 1:
-                        Merge merge = new Merge();
-                        merge.ordenar(copia);
-                        break;
-
-                    case 2:
-                        Quick quick = new Quick();
-                        quick.ordenar(copia);
-                        break;
-
-                    case 3:
-                        Heap heap = new Heap();
-                        heap.ordenar(copia);
-                        break;
-
-                    case 4:
-                        Counting counting = new Counting();
-                        counting.ordenar(copia);
-                        break;
-
-                    case 5:
-                        Radix radix = new Radix();
-                        radix.ordenar(copia);
-                        break;
-
-                    case 6:
-                        Bucket bucket = new Bucket();
-                        bucket.ordenar(copia);
-                        break;
-
-                    case 7:
-                        Bubble bubble = new Bubble();
-                        bubble.ordenar(copia);
-                        break;
-
-                    case 8:
-                        Insertion insertion = new Insertion();
-                        insertion.ordenar(copia);
-                        break;
-
-                    case 9:
-                        Selection selection = new Selection();
-                        selection.ordenar(copia);
-                        break;
-
-                    case 10:
-                        Shell shell = new Shell();
-                        shell.ordenar(copia);
-                        break;
-                }
-
-                long fim = System.nanoTime();
-
-                double tempo = (fim - inicio) / 1_000_000.0;
-
-                tempos[execucao] = tempo;
-                soma += tempo;
-
-                if (tempo > maximo) {
-                    maximo = tempo;
-                }
-
-                if (tempo < minimo) {
-                    minimo = tempo;
-                }
-
-                System.out.printf(
-                        "Execução %d: %.3f ms%n",
-                        execucao + 1,
-                        tempo
-                );
+            for (double t : tempos) {
+                soma += t;
+                minimo = Math.min(minimo, t);
+                maximo = Math.max(maximo, t);
             }
 
-            // Calcula a média
-            double media = soma / tempos.length;
-
-            // Calcula a soma dos quadrados das diferenças
-            double somaQuadrados = 0;
-
-            for (int i = 0; i < tempos.length; i++) {
-                double diferenca = tempos[i] - media;
-                somaQuadrados += diferenca * diferenca;
-            }
-
-            // Desvio padrão populacional das 10 execuções
-            double desvioPadrao = Math.sqrt(
-                    somaQuadrados / tempos.length
-            );
-
-            // Exibe as estatísticas
-            System.out.println("-------------------------------------------");
-            System.out.printf("MÉDIA:          %.3f ms%n", media);
-            System.out.printf("MÁXIMO:         %.3f ms%n", maximo);
-            System.out.printf("MÍNIMO:         %.3f ms%n", minimo);
-            System.out.printf("DESVIO PADRÃO:  %.3f ms%n", desvioPadrao);
-            System.out.println("===========================================");
-            System.out.println();
+            media = soma / tempos.length;
+            double sq = 0;
+            for (double t : tempos) sq += Math.pow(t - media, 2);
+            desvio = Math.sqrt(sq / tempos.length);
         }
 
-        scan.close();
+        void mostrar() {
+            System.out.printf(Locale.US,
+                    "N=%d | %s | Media=%.3f ms | Max=%.3f ms | Min=%.3f ms | DP=%.3f ms%n",
+                    n, ordem, media, maximo, minimo, desvio);
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        Random rand = new Random();
+
+        System.out.println("1) Manual\n2) Automatico - todos os algoritmos\n0) Sair");
+        int modo = ler(sc);
+
+        if (modo == 1) {
+            System.out.print("Tamanho N: ");
+            int n = ler(sc);
+            System.out.println("1) Crescente  2) Decrescente  3) Aleatoria  4) Repetidos");
+            int ordem = ler(sc);
+
+            if (n <= 0 || ordem < 1 || ordem > 4) {
+                System.out.println("Entrada invalida.");
+            } else {
+                Integer[] vetor = criarVetor(n, ordem, rand);
+                while (true) {
+                    for (int i = 1; i <= 10; i++)
+                        System.out.println(i + ") " + NOMES[i]);
+                    System.out.println("0) Sair");
+                    int op = ler(sc);
+                    if (op == 0) break;
+                    if (op < 1 || op > 10) continue;
+                    executar(op, vetor, ordem);
+                }
+            }
+        } else if (modo == 2) {
+            List<Resultado> resultados = new ArrayList<>();
+            for (int op = 1; op <= 10; op++) {
+                System.out.println("\n=== " + NOMES[op] + " ===");
+                automatico(op, rand, resultados);
+            }
+            try {
+                exportar(resultados);
+                System.out.println("\nRelatorios e graficos salvos na pasta resultados.");
+            } catch (Exception e) {
+                System.err.println("Erro ao gerar relatorios: " + e.getMessage());
+            }
+        }
+
+        sc.close();
+    }
+
+    static int ler(Scanner sc) {
+        while (!sc.hasNextInt()) {
+            System.out.print("Digite um numero inteiro: ");
+            sc.next();
+        }
+        return sc.nextInt();
+    }
+
+    static Integer[] criarVetor(int n, int ordem, Random r) {
+        Integer[] v = new Integer[n];
+        int[] repetidos = {5, 2, 5, 3, 2, 5, 1, 3, 2, 1};
+
+        for (int i = 0; i < n; i++) {
+            switch (ordem) {
+                case 1: v[i] = i; break;
+                case 2: v[i] = n - i; break;
+                case 3: v[i] = r.nextInt(100000); break;
+                case 4: v[i] = repetidos[i % repetidos.length]; break;
+            }
+        }
+        return v;
+    }
+
+    static void ordenar(int op, Integer[] v) {
+        switch (op) {
+            case 1: new Merge().ordenar(v); break;
+            case 2: new Quick().ordenar(v); break;
+            case 3: new Heap().ordenar(v); break;
+            case 4: new Counting().ordenar(v); break;
+            case 5: new Radix().ordenar(v); break;
+            case 6: new Bucket().ordenar(v); break;
+            case 7: new Bubble().ordenar(v); break;
+            case 8: new Insertion().ordenar(v); break;
+            case 9: new Selection().ordenar(v); break;
+            case 10: new Shell().ordenar(v); break;
+            default: throw new IllegalArgumentException("Algoritmo invalido");
+        }
+    }
+
+    static Resultado executar(int op, Integer[] vetor, int ordem) {
+        double[] tempos = new double[EXECUCOES];
+
+        for (int i = 0; i < EXECUCOES; i++) {
+            Integer[] copia = vetor.clone();
+            long inicio = System.nanoTime();
+            ordenar(op, copia);
+            tempos[i] = (System.nanoTime() - inicio) / 1_000_000.0;
+            System.out.printf(Locale.US, "Execucao %d: %.3f ms%n", i + 1, tempos[i]);
+        }
+
+        Resultado r = new Resultado(NOMES[op], vetor.length, ORDENS[ordem], tempos);
+        r.mostrar();
+        return r;
+    }
+
+    static void automatico(int op, Random rand, List<Resultado> resultados) {
+        int[] tamanhos = (op == 7 || op == 8 || op == 9)
+                ? new int[]{1000, 10000, 100000}
+                : new int[]{1000, 10000, 100000, 1000000};
+
+        for (int ordem = 1; ordem <= 4; ordem++) {
+            for (int n : tamanhos) {
+                System.out.printf("%n%s | N=%d | %s%n", NOMES[op], n, ORDENS[ordem]);
+                try {
+                    resultados.add(executar(op, criarVetor(n, ordem, rand), ordem));
+                } catch (Exception e) {
+                    System.err.println("Falha: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    static void exportar(List<Resultado> rs) throws Exception {
+        Path pasta = Paths.get("resultados").toAbsolutePath();
+        Files.createDirectories(pasta.resolve("graficos"));
+
+        StringBuilder csv = new StringBuilder(
+                "algoritmo,N,ordem,execucao,tempo_ms,media_ms,maximo_ms,minimo_ms,desvio_padrao_ms\n");
+
+        for (Resultado r : rs) {
+            for (int i = 0; i < r.tempos.length; i++) {
+                csv.append(String.format(Locale.US,
+                        "%s,%d,%s,%d,%.6f,%.6f,%.6f,%.6f,%.6f%n",
+                        r.algoritmo, r.n, r.ordem, i + 1, r.tempos[i],
+                        r.media, r.maximo, r.minimo, r.desvio));
+            }
+        }
+
+        Files.write(pasta.resolve("dados_benchmark.csv"),
+                csv.toString().getBytes(StandardCharsets.UTF_8));
+
+        String py = String.join("\n",
+                "from pathlib import Path",
+                "import pandas as pd",
+                "import matplotlib",
+                "matplotlib.use('Agg')",
+                "import matplotlib.pyplot as plt",
+                "p=Path(__file__).resolve().parent",
+                "g=p/'graficos'",
+                "d=pd.read_csv(p/'dados_benchmark.csv')",
+                "for a,x in d.groupby('algoritmo',sort=False):",
+                " x.to_excel(p/f'{a}.ods',index=False,engine='odf')",
+                " m=x.groupby(['N','ordem'],as_index=False).tempo_ms.mean()",
+                " for ord in ['Crescente','Decrescente','Aleatoria','Repetidos']:",
+                "  z=m[m.ordem==ord].sort_values('N')",
+                "  if not z.empty: plt.plot(z.N,z.tempo_ms,marker='o',label=ord)",
+                " plt.title(f'Tempo de execucao - {a}')",
+                " plt.xlabel('Tamanho da entrada (N)')",
+                " plt.ylabel('Tempo medio (ms)')",
+                " plt.xscale('log')",
+                " plt.xticks(sorted(x.N.unique()),[f'{int(n):,}'.replace(',','.') for n in sorted(x.N.unique())])",
+                " plt.grid(True,alpha=.3); plt.legend(); plt.tight_layout()",
+                " plt.savefig(g/f'{a}.png',dpi=150); plt.close()",
+                "r=d.groupby(['algoritmo','N','ordem'],as_index=False).agg(media_ms=('tempo_ms','mean'),maximo_ms=('tempo_ms','max'),minimo_ms=('tempo_ms','min'),desvio_padrao_ms=('tempo_ms','std'))",
+                "r.to_excel(p/'Resumo_Geral.ods',index=False,engine='odf')",
+                "print('Relatorios gerados.')"
+        );
+
+        Path script = pasta.resolve("gerar_relatorios.py");
+        Files.write(script, py.getBytes(StandardCharsets.UTF_8));
+
+        String cmd = System.getProperty("os.name").toLowerCase().contains("win")
+                ? "python" : "python3";
+        Process processo = new ProcessBuilder(cmd, script.toString())
+                .directory(pasta.toFile()).redirectErrorStream(true).start();
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(processo.getInputStream(), StandardCharsets.UTF_8))) {
+            String linha;
+            while ((linha = br.readLine()) != null) System.out.println(linha);
+        }
+
+        if (processo.waitFor() != 0)
+            throw new IOException("Instale: pip install pandas odfpy matplotlib");
     }
 }
