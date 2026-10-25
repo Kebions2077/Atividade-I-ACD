@@ -1,5 +1,4 @@
 
-// Criado por Kevin Meireles e Joao Rigo
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -39,7 +38,10 @@ public class Main {
 
             media = soma / tempos.length;
             double sq = 0;
-            for (double t : tempos) sq += Math.pow(t - media, 2);
+
+            for (double t : tempos)
+                sq += Math.pow(t - media, 2);
+
             desvio = Math.sqrt(sq / tempos.length);
         }
 
@@ -54,41 +56,62 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Random rand = new Random();
 
-        System.out.println("1) Manual\n2) Automatico - todos os algoritmos\n0) Sair");
+        System.out.println("1) Manual");
+        System.out.println("2) Automatico - todos os algoritmos");
+        System.out.println("3) Testes com vetores pequenos");
+        System.out.println("0) Sair");
+
         int modo = ler(sc);
 
         if (modo == 1) {
             System.out.print("Tamanho N: ");
             int n = ler(sc);
-            System.out.println("1) Crescente  2) Decrescente  3) Aleatoria  4) Repetidos");
+
+            System.out.println(
+                    "1) Crescente  2) Decrescente  3) Aleatoria  4) Repetidos");
             int ordem = ler(sc);
 
             if (n <= 0 || ordem < 1 || ordem > 4) {
                 System.out.println("Entrada invalida.");
             } else {
                 Integer[] vetor = criarVetor(n, ordem, rand);
+
                 while (true) {
                     for (int i = 1; i <= 10; i++)
                         System.out.println(i + ") " + NOMES[i]);
+
                     System.out.println("0) Sair");
                     int op = ler(sc);
+
                     if (op == 0) break;
                     if (op < 1 || op > 10) continue;
+
                     executar(op, vetor, ordem);
                 }
             }
+
         } else if (modo == 2) {
             List<Resultado> resultados = new ArrayList<>();
+
             for (int op = 1; op <= 10; op++) {
                 System.out.println("\n=== " + NOMES[op] + " ===");
                 automatico(op, rand, resultados);
             }
+
             try {
                 exportar(resultados);
-                System.out.println("\nRelatorios e graficos salvos na pasta resultados.");
+                System.out.println(
+                        "\nRelatorios e graficos salvos na pasta resultados.");
             } catch (Exception e) {
-                System.err.println("Erro ao gerar relatorios: " + e.getMessage());
+                System.err.println(
+                        "Erro ao gerar relatorios: " + e.getMessage());
             }
+
+        } else if (modo == 3) {
+            testarAlgoritmos();
+
+        } else if (modo != 0) {
+            System.out.println("Opcao invalida.");
         }
 
         sc.close();
@@ -114,6 +137,7 @@ public class Main {
                 case 4: v[i] = repetidos[i % repetidos.length]; break;
             }
         }
+
         return v;
     }
 
@@ -139,31 +163,111 @@ public class Main {
         for (int i = 0; i < EXECUCOES; i++) {
             Integer[] copia = vetor.clone();
             long inicio = System.nanoTime();
+
             ordenar(op, copia);
+
             tempos[i] = (System.nanoTime() - inicio) / 1_000_000.0;
-            System.out.printf(Locale.US, "Execucao %d: %.3f ms%n", i + 1, tempos[i]);
+            System.out.printf(Locale.US,
+                    "Execucao %d: %.3f ms%n", i + 1, tempos[i]);
         }
 
-        Resultado r = new Resultado(NOMES[op], vetor.length, ORDENS[ordem], tempos);
+        Resultado r = new Resultado(
+                NOMES[op], vetor.length, ORDENS[ordem], tempos);
         r.mostrar();
+
         return r;
     }
 
-    static void automatico(int op, Random rand, List<Resultado> resultados) {
+    static void automatico(int op, Random rand,
+                           List<Resultado> resultados) {
         int[] tamanhos = (op == 7 || op == 8 || op == 9)
                 ? new int[]{1000, 10000, 100000}
                 : new int[]{1000, 10000, 100000, 1000000};
 
         for (int ordem = 1; ordem <= 4; ordem++) {
             for (int n : tamanhos) {
-                System.out.printf("%n%s | N=%d | %s%n", NOMES[op], n, ORDENS[ordem]);
+                System.out.printf("%n%s | N=%d | %s%n",
+                        NOMES[op], n, ORDENS[ordem]);
+
                 try {
-                    resultados.add(executar(op, criarVetor(n, ordem, rand), ordem));
+                    resultados.add(executar(
+                            op, criarVetor(n, ordem, rand), ordem));
                 } catch (Exception e) {
                     System.err.println("Falha: " + e.getMessage());
                 }
             }
         }
+    }
+
+    // NOVA OPCAO: TESTES COM VETORES PEQUENOS
+    static void testarAlgoritmos() {
+        Integer[][] vetores = {
+                {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+                {10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+                {5, 2, 9, 1, 7, 3, 8, 4, 6, 0},
+                {4, 2, 4, 1, 2, 5, 1, 3, 5, 3},
+                {12, -3, 7, 0, -8, 12, 4, 1, 9, -1, 6, 2},
+                {15, 0, 15, -5, 8, 3, 3, 11, -2, 7, 1, 9, 4, 6, 2}
+        };
+
+        String[] nomes = {
+                "Crescente",
+                "Decrescente",
+                "Aleatorio",
+                "Repetidos",
+                "Valores negativos",
+                "Vetor com 15 elementos"
+        };
+
+        int passouTotal = 0;
+        int falhouTotal = 0;
+
+        System.out.println("\n===== TESTES DE ORDENACAO =====");
+
+        for (int op = 1; op <= 10; op++) {
+            System.out.println("\n=== " + NOMES[op] + " ===");
+
+            for (int i = 0; i < vetores.length; i++) {
+                Integer[] original = vetores[i].clone();
+                Integer[] esperado = vetores[i].clone();
+                Integer[] copia = vetores[i].clone();
+
+                Arrays.sort(esperado);
+
+                try {
+                    ordenar(op, copia);
+
+                    boolean passou = Arrays.equals(copia, esperado);
+
+                    System.out.println("\nTeste: " + nomes[i]);
+                    System.out.println(
+                            "Original: " + Arrays.toString(original));
+                    System.out.println(
+                            "Ordenado: " + Arrays.toString(copia));
+
+                    if (passou) {
+                        System.out.println("Resultado: PASSOU");
+                        passouTotal++;
+                    } else {
+                        System.out.println("Resultado: FALHOU");
+                        System.out.println(
+                                "Esperado: " + Arrays.toString(esperado));
+                        falhouTotal++;
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("\nTeste: " + nomes[i]);
+                    System.out.println(
+                            "Resultado: FALHOU - " + e.getMessage());
+                    falhouTotal++;
+                }
+            }
+        }
+
+        System.out.println("\n===== RESUMO DOS TESTES =====");
+        System.out.println("Total: " + (passouTotal + falhouTotal));
+        System.out.println("Passaram: " + passouTotal);
+        System.out.println("Falharam: " + falhouTotal);
     }
 
     static void exportar(List<Resultado> rs) throws Exception {
@@ -182,7 +286,8 @@ public class Main {
             }
         }
 
-        Files.write(pasta.resolve("dados_benchmark.csv"),
+        Files.write(
+                pasta.resolve("dados_benchmark.csv"),
                 csv.toString().getBytes(StandardCharsets.UTF_8));
 
         String py = String.join("\n",
@@ -215,18 +320,24 @@ public class Main {
         Path script = pasta.resolve("gerar_relatorios.py");
         Files.write(script, py.getBytes(StandardCharsets.UTF_8));
 
-        String cmd = System.getProperty("os.name").toLowerCase().contains("win")
-                ? "python" : "python3";
+        String cmd = System.getProperty("os.name")
+                .toLowerCase().contains("win") ? "python" : "python3";
+
         Process processo = new ProcessBuilder(cmd, script.toString())
-                .directory(pasta.toFile()).redirectErrorStream(true).start();
+                .directory(pasta.toFile())
+                .redirectErrorStream(true)
+                .start();
 
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(processo.getInputStream(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(
+                        processo.getInputStream(), StandardCharsets.UTF_8))) {
             String linha;
-            while ((linha = br.readLine()) != null) System.out.println(linha);
+            while ((linha = br.readLine()) != null)
+                System.out.println(linha);
         }
 
         if (processo.waitFor() != 0)
-            throw new IOException("Instale: pip install pandas odfpy matplotlib");
+            throw new IOException(
+                    "Instale: pip install pandas odfpy matplotlib");
     }
 }
